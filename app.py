@@ -5,7 +5,9 @@ from auth.auth_routes import auth_bp
 from transactions.transaction_routes import transaction_bp
 from security.login_checker import security_bp
 from database.models import User
-import requests
+
+# ✅ IMPORT ML FUNCTION (NEW)
+from security.model import predict_login
 
 
 def create_app():
@@ -52,37 +54,14 @@ def create_app():
 
         if request.method == "POST":
             try:
-                # ✅ Correct ML API Call
-                ml_response = requests.post(
-                    "http://127.0.0.1:7000/predict-login",
-                    json={
-                        "login_attempts": 3,
-                        "ip_change": 1,
-                        "device_change": 0
-                    },
-                    timeout=5
-                )
+                # ✅ DIRECT ML FUNCTION CALL (NO API)
+                decision = predict_login(login_attempts=3)
 
-                print("STATUS CODE:", ml_response.status_code)
-                print("RAW RESPONSE:", ml_response.text)
-
-                if ml_response.status_code == 200:
-                    data = ml_response.json()
-
-                    # ✅ ML returns "result"
-                    decision = data.get("result", "").upper()
-
-                    result = {
-                        "total": 1,
-                        "suspicious": 1 if "SUSPICIOUS" in decision else 0,
-                        "normal": 1 if "NORMAL" in decision else 0
-                    }
-                else:
-                    result = {
-                        "total": 0,
-                        "suspicious": 0,
-                        "normal": 0
-                    }
+                result = {
+                    "total": 1,
+                    "suspicious": 1 if decision == "SUSPICIOUS" else 0,
+                    "normal": 1 if decision == "NORMAL" else 0
+                }
 
             except Exception as e:
                 print("ML ERROR:", e)
