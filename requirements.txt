@@ -8,8 +8,13 @@ python-dotenv==1.0.1
 # Security & OTP
 pyotp==2.9.0
 
-# Optional (alerts / future use)
+# ML
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.4.2
+
+# Optional
 requests==2.31.0
 
-# Production Server (IMPORTANT for Render)
+# Production
 gunicorn==21.2.0
