@@ -37,7 +37,6 @@ def create_app():
     def dashboard():
         if "user_id" not in session:
             return redirect(url_for("auth.login"))
-
         return render_template("dashboard.html")
 
     # ================= SUSPICIOUS DASHBOARD =================
@@ -49,30 +48,44 @@ def create_app():
 
         result = None
         hidden_data = None
-        role = "admin"   # agar role session me hai toh session["role"] use kar sakte ho
+        role = session.get("role", "admin")
 
         if request.method == "POST":
             try:
-                # ML Service Call
+                # ✅ Correct ML API Call
                 ml_response = requests.post(
-                    "http://192.168.1.7:6000/predict-login",  # ML app ka correct endpoint
+                    "http://127.0.0.1:7000/predict-login",
                     json={
-                        "attempts": 3,
-                        "status": "success"
+                        "login_attempts": 3,
+                        "ip_change": 1,
+                        "device_change": 0
                     },
                     timeout=5
-                ).json()
+                )
 
-                decision = ml_response.get("decision")
+                print("STATUS CODE:", ml_response.status_code)
+                print("RAW RESPONSE:", ml_response.text)
 
-                # Template ke hisaab se result structure
-                result = {
-                    "total": 1,
-                    "suspicious": 1 if decision != "ALLOW" else 0,
-                    "normal": 1 if decision == "ALLOW" else 0
-                }
+                if ml_response.status_code == 200:
+                    data = ml_response.json()
+
+                    # ✅ ML returns "result"
+                    decision = data.get("result", "").upper()
+
+                    result = {
+                        "total": 1,
+                        "suspicious": 1 if "SUSPICIOUS" in decision else 0,
+                        "normal": 1 if "NORMAL" in decision else 0
+                    }
+                else:
+                    result = {
+                        "total": 0,
+                        "suspicious": 0,
+                        "normal": 0
+                    }
 
             except Exception as e:
+                print("ML ERROR:", e)
                 result = {
                     "total": 0,
                     "suspicious": 0,
@@ -110,4 +123,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True,port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)
