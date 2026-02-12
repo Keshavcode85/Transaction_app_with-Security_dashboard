@@ -10,3 +10,6 @@ pyotp==2.9.0
 
 # Optional (alerts / future use)
 requests==2.31.0
+
+# Production Server (IMPORTANT for Render)
+gunicorn==21.2.0
