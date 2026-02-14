@@ -6,7 +6,7 @@ from transactions.transaction_routes import transaction_bp
 from security.login_checker import security_bp
 from database.models import User
 
-# ✅ IMPORT ML FUNCTION (NEW)
+# ✅ IMPORT ML FUNCTION
 from security.model import predict_login
 
 
@@ -54,7 +54,6 @@ def create_app():
 
         if request.method == "POST":
             try:
-                # ✅ DIRECT ML FUNCTION CALL (NO API)
                 decision = predict_login(login_attempts=3)
 
                 result = {
@@ -100,6 +99,10 @@ def create_app():
     return app
 
 
+# 🔥 IMPORTANT FOR GUNICORN (RAILWAY DEPLOYMENT)
+app = create_app()
+
+
+# 🔥 ONLY FOR LOCAL RUN
 if __name__ == "__main__":
-    app = create_app()
     app.run(debug=True, host="0.0.0.0", port=5000)
